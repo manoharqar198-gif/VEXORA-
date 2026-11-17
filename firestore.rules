@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['userId', 'name', 'username']) &&
+        data.userId is string &&
+        data.name is string &&
+        data.name.size() > 0 &&
+        data.name.size() <= 100 &&
+        data.username is string &&
+        data.username.size() > 0 &&
+        data.username.size() <= 50;
+    }
+
+    function isValidUserPost(data) {
+      return data.keys().hasAll(['userId', 'content']) &&
+        data.userId is string &&
+        data.content is string &&
+        data.content.size() > 0 &&
+        data.content.size() <= 2000;
+    }
+
+    function isValidSecuritySettings(data) {
+      return data.keys().hasAll(['userId', 'twoFactorEnabled', 'privateAccount']) &&
+        data.userId is string &&
+        data.twoFactorEnabled is bool &&
+        data.privateAccount is bool;
+    }
+
+    function isValidUsernameReservation(data, username) {
+      return data.keys().hasAll(['userId', 'username']) &&
+        data.userId is string &&
+        data.userId == request.auth.uid &&
+        data.username is string &&
+        data.username == username &&
+        username.matches('^[a-z0-9_.]{3,30}$');
+    }
+
+    // Unique Username Index (authenticated users only; prevents duplicate usernames)
+    match /usernames/{username} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidUsernameReservation(request.resource.data, username);
+      allow update: if isAuthenticated() &&
+        resource.data.userId == request.auth.uid &&
+        isValidUsernameReservation(request.resource.data, username);
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // User Profile
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isOwner(userId) && isValidUserProfile(request.resource.data) && request.resource.data.userId == userId;
+      allow delete: if isOwner(userId);
+
+      // Posts subcollection
+      match /posts/{postId} {
+        allow read: if isAuthenticated();
+        allow create, update: if isOwner(userId) && isValidUserPost(request.resource.data) && request.resource.data.userId == userId;
+        allow delete: if isOwner(userId);
+      }
+
+      // Security Settings subcollection
+      match /security/{settingId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidSecuritySettings(request.resource.data) && request.resource.data.userId == userId;
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

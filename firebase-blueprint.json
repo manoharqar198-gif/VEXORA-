@@ -1,0 +1,65 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile information on VEXORA",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "username": { "type": "string" },
+        "bio": { "type": "string" },
+        "isPrivate": { "type": "boolean" },
+        "followersCount": { "type": "integer" },
+        "followingCount": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "name", "username"]
+    },
+    "UserPost": {
+      "title": "UserPost",
+      "description": "Social media posts created by users",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorUsername": { "type": "string" },
+        "content": { "type": "string" },
+        "likesCount": { "type": "integer" },
+        "commentsCount": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "content"]
+    },
+    "SecuritySettings": {
+      "title": "SecuritySettings",
+      "description": "User security and privacy configuration",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "twoFactorEnabled": { "type": "boolean" },
+        "twoFactorMethod": { "type": "string" },
+        "privateAccount": { "type": "boolean" },
+        "suspiciousAlertsEnabled": { "type": "boolean" },
+        "commentControl": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "twoFactorEnabled", "privateAccount"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile document keyed by auth UID"
+    },
+    "/users/{userId}/posts/{postId}": {
+      "schema": "UserPost",
+      "description": "Posts created by the user"
+    },
+    "/users/{userId}/security/config": {
+      "schema": "SecuritySettings",
+      "description": "Private security settings for the user"
+    }
+  }
+}

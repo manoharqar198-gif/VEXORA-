@@ -1,0 +1,6 @@
+{
+  "name": "VEXORA",
+  "description": "VEXORA Social Platform: Connect, Create, Share, and Go Live with Google Sign-In, HD Reels, Creator Studio, and Cloud Security",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
